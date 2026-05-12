@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RaiseTimeLine</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="app-header"></header>
+  <main id="app-main"></main>
+
+  <!-- モーダル: オーバーレイ -->
+  <div id="modal-overlay" class="modal-overlay hidden" data-action="close-modal"></div>
+
+  <!-- モーダル: フォロワー / フォロー中一覧 -->
+  <div id="modal-follow-list" class="modal modal-list hidden">
+    <div class="modal-header">
+      <h3 id="modal-follow-title"></h3>
+      <button class="modal-close-btn" data-action="close-modal">×</button>
+    </div>
+    <div id="modal-follow-body" class="modal-body"></div>
+  </div>
+
+  <!-- モーダル: 画像フルサイズビューア -->
+  <div id="modal-image-viewer" class="modal modal-image hidden">
+    <button class="modal-close-btn modal-image-close" data-action="close-modal">×</button>
+    <img id="modal-image-src" src="" alt="拡大画像">
+  </div>
+
+  <!-- モーダル: 投稿編集 -->
+  <div id="modal-edit-post" class="modal modal-edit hidden">
+    <div class="modal-header">
+      <h3>投稿を編集</h3>
+      <button class="modal-close-btn" data-action="close-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <textarea id="edit-post-textarea" class="edit-textarea" maxlength="280"></textarea>
+      <div class="edit-post-footer">
+        <span id="edit-post-char-count" class="char-count">280</span>
+        <div class="edit-post-actions">
+          <button class="btn btn-outline" data-action="close-modal">キャンセル</button>
+          <button class="btn btn-primary" id="edit-post-save-btn" data-action="save-edit-post">保存する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- モーダル: コメント編集 -->
+  <div id="modal-edit-comment" class="modal modal-edit hidden">
+    <div class="modal-header">
+      <h3>コメントを編集</h3>
+      <button class="modal-close-btn" data-action="close-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <textarea id="edit-comment-textarea" class="edit-textarea"></textarea>
+      <div class="edit-post-footer">
+        <div class="edit-post-actions">
+          <button class="btn btn-outline" data-action="close-modal">キャンセル</button>
+          <button class="btn btn-primary" id="edit-comment-save-btn" data-action="save-edit-comment">保存する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
