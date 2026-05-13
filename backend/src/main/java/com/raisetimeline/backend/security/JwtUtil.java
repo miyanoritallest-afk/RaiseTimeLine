@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -19,6 +20,9 @@ public class JwtUtil {
     @Value("${app.jwt.expiration-ms}")
     private long expirationMs;
 
+    @Value("${app.jwt.refresh-expiration-ms}")
+    private long refreshExpirationMs;
+
     public String generateToken(Long userId) {
         return Jwts.builder()
             .subject(String.valueOf(userId))
@@ -26,6 +30,18 @@ public class JwtUtil {
             .expiration(new Date(System.currentTimeMillis() + expirationMs))
             .signWith(getSigningKey())
             .compact();
+    }
+
+    public String generateRefreshToken() {
+        return UUID.randomUUID().toString();
+    }
+
+    public long getRefreshExpirationMs() {
+        return refreshExpirationMs;
+    }
+
+    public long getExpirationMs() {
+        return expirationMs;
     }
 
     public Long extractUserId(String token) {
