@@ -15,7 +15,7 @@ client.interceptors.request.use((config) => {
 
 let isRefreshing = false
 let failedQueue: Array<{
-  resolve: (value: unknown) => void
+  resolve: (token: string | null) => void
   reject: (reason?: unknown) => void
 }> = []
 
@@ -43,19 +43,24 @@ client.interceptors.response.use(
     }
 
     if (isRefreshing) {
-      return new Promise((resolve, reject) => {
+      return new Promise<string | null>((resolve, reject) => {
         failedQueue.push({ resolve, reject })
-      }).then((token) => {
-        originalRequest.headers.Authorization = `Bearer ${token}`
-        return client(originalRequest)
       })
+        .then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`
+          return client(originalRequest)
+        })
+        .catch((err) => {
+          failedQueue = []
+          return Promise.reject(err)
+        })
     }
 
     originalRequest._retry = true
     isRefreshing = true
 
     try {
-      const { data } = await axios.post('/api/auth/refresh', { refreshToken })
+      const { data } = await client.post('/auth/refresh', { refreshToken })
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('refreshToken', data.refreshToken)
       processQueue(null, data.accessToken)

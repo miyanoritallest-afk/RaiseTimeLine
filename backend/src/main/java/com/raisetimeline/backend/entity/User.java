@@ -33,7 +33,10 @@ public class User {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
-    @Column(name = "refresh_token_hash", length = 255)
+    @Column(name = "refresh_token_prefix", length = 8)
+    private String refreshTokenPrefix;
+
+    @Column(name = "refresh_token_hash", length = 64)
     private String refreshTokenHash;
 
     @Column(name = "refresh_token_expires_at")

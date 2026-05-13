@@ -15,8 +15,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HexFormat;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +34,17 @@ public class AuthService {
         if (userRepository.existsByEmail(req.email())) {
             throw new DuplicateResourceException("このメールアドレスは既に登録されています");
         }
+        String rawRefreshToken = jwtUtil.generateRefreshToken();
         User user = User.builder()
             .email(req.email())
             .username(req.username())
             .passwordHash(passwordEncoder.encode(req.password()))
+            .refreshTokenPrefix(extractPrefix(rawRefreshToken))
+            .refreshTokenHash(hashToken(rawRefreshToken))
+            .refreshTokenExpiresAt(expiresAt())
             .build();
         user = userRepository.save(user);
-        return buildAuthResponse(user);
+        return toAuthResponse(user, rawRefreshToken);
     }
 
     @Transactional
@@ -47,55 +54,77 @@ public class AuthService {
         if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {
             throw new BadCredentialsException("メールアドレスまたはパスワードが正しくありません");
         }
-        return buildAuthResponse(user);
+        return issueTokens(user);
     }
 
     @Transactional
     public AuthResponse refresh(String rawRefreshToken) {
-        List<User> users = userRepository.findAll();
-        User user = users.stream()
-            .filter(u -> u.getRefreshTokenHash() != null
-                && passwordEncoder.matches(rawRefreshToken, u.getRefreshTokenHash()))
-            .findFirst()
-            .orElseThrow(() -> new InvalidTokenException("リフレッシュトークンが無効です"));
-
+        User user = findByRefreshToken(rawRefreshToken);
         if (user.getRefreshTokenExpiresAt() == null
                 || user.getRefreshTokenExpiresAt().isBefore(LocalDateTime.now())) {
             throw new InvalidTokenException("リフレッシュトークンの有効期限が切れています");
         }
-        return buildAuthResponse(user);
+        return issueTokens(user);
     }
 
     @Transactional
     public void logout(String rawRefreshToken) {
-        List<User> users = userRepository.findAll();
-        users.stream()
+        userRepository.findByRefreshTokenPrefix(extractPrefix(rawRefreshToken))
+            .stream()
             .filter(u -> u.getRefreshTokenHash() != null
-                && passwordEncoder.matches(rawRefreshToken, u.getRefreshTokenHash()))
+                && hashToken(rawRefreshToken).equals(u.getRefreshTokenHash()))
             .findFirst()
             .ifPresent(u -> {
+                u.setRefreshTokenPrefix(null);
                 u.setRefreshTokenHash(null);
                 u.setRefreshTokenExpiresAt(null);
                 userRepository.save(u);
             });
     }
 
-    private AuthResponse buildAuthResponse(User user) {
-        String accessToken = jwtUtil.generateToken(user.getId());
+    private User findByRefreshToken(String rawRefreshToken) {
+        return userRepository.findByRefreshTokenPrefix(extractPrefix(rawRefreshToken))
+            .stream()
+            .filter(u -> u.getRefreshTokenHash() != null
+                && hashToken(rawRefreshToken).equals(u.getRefreshTokenHash()))
+            .findFirst()
+            .orElseThrow(() -> new InvalidTokenException("リフレッシュトークンが無効です"));
+    }
+
+    private AuthResponse issueTokens(User user) {
         String rawRefreshToken = jwtUtil.generateRefreshToken();
-        long refreshMs = jwtUtil.getRefreshExpirationMs();
-
-        user.setRefreshTokenHash(passwordEncoder.encode(rawRefreshToken));
-        user.setRefreshTokenExpiresAt(
-            LocalDateTime.now().plusSeconds(refreshMs / 1000));
+        user.setRefreshTokenPrefix(extractPrefix(rawRefreshToken));
+        user.setRefreshTokenHash(hashToken(rawRefreshToken));
+        user.setRefreshTokenExpiresAt(expiresAt());
         userRepository.save(user);
+        return toAuthResponse(user, rawRefreshToken);
+    }
 
+    private AuthResponse toAuthResponse(User user, String rawRefreshToken) {
         return new AuthResponse(
-            accessToken,
+            jwtUtil.generateToken(user.getId()),
             rawRefreshToken,
             jwtUtil.getExpirationMs() / 1000,
             toUserResponse(user)
         );
+    }
+
+    private LocalDateTime expiresAt() {
+        return LocalDateTime.now().plusSeconds(jwtUtil.getRefreshExpirationMs() / 1000);
+    }
+
+    private static String extractPrefix(String rawToken) {
+        return rawToken.substring(0, 8);
+    }
+
+    private static String hashToken(String rawToken) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                .digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 
     private UserResponse toUserResponse(User user) {
