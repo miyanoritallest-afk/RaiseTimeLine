@@ -1,6 +1,7 @@
 package com.raisetimeline.backend.controller;
 
 import com.raisetimeline.backend.dto.request.LoginRequest;
+import com.raisetimeline.backend.dto.request.RefreshRequest;
 import com.raisetimeline.backend.dto.request.RegisterRequest;
 import com.raisetimeline.backend.dto.response.AuthResponse;
 import com.raisetimeline.backend.service.AuthService;
@@ -27,9 +28,14 @@ public class AuthController {
         return authService.login(req);
     }
 
+    @PostMapping("/refresh")
+    public AuthResponse refresh(@Valid @RequestBody RefreshRequest req) {
+        return authService.refresh(req.refreshToken());
+    }
+
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout() {
-        // JWTはステートレス。クライアント側でトークンを破棄する
+    public void logout(@Valid @RequestBody RefreshRequest req) {
+        authService.logout(req.refreshToken());
     }
 }

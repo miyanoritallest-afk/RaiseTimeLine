@@ -55,6 +55,12 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(400, "Bad Request", ex.getMessage(), LocalDateTime.now());
     }
 
+    @ExceptionHandler(InvalidTokenException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleInvalidToken(InvalidTokenException ex) {
+        return new ErrorResponse(401, "Unauthorized", ex.getMessage(), LocalDateTime.now());
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDataIntegrity(DataIntegrityViolationException ex) {

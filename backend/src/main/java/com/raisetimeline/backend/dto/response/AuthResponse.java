@@ -1,6 +1,8 @@
 package com.raisetimeline.backend.dto.response;
 
 public record AuthResponse(
-    String token,
+    String accessToken,
+    String refreshToken,
+    Long expiresIn,
     UserResponse user
 ) {}
