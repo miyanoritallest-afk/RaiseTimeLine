@@ -690,6 +690,32 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
   font-size: 15px;
 }
 
+/* ========== プロフィールタブ ========== */
+.profile-tabs {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 10;
+  background: var(--color-bg);
+}
+
+.profile-comment-post-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  transition: background 0.15s;
+}
+.profile-comment-post-link:hover { background: var(--color-border); }
+.profile-comment-post-label { font-weight: 600; flex-shrink: 0; }
+.profile-comment-post-author { color: var(--color-primary); font-weight: 600; flex-shrink: 0; }
+.profile-comment-post-snippet { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ========== プロフィール編集画面 ========== */
 .edit-profile-wrapper { padding: 20px 16px; }
 .edit-profile-title { font-size: 20px; font-weight: 800; margin-bottom: 24px; }

@@ -360,6 +360,52 @@ function clearPendingImages() {
 }
 
 /* =====================================================
+   プロフィールタブ用データ収集ヘルパー
+===================================================== */
+function buildProfileTabData(userId) {
+  const userMap = new Map(db.users.map(u => [u.id, u]));
+
+  const userPosts = db.posts
+    .filter(p => p.userId === userId)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const userComments = db.comments
+    .filter(c => c.userId === userId)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const commentPostIds = new Set(userComments.map(c => c.postId));
+  const commentPostMap = new Map(
+    db.posts.filter(p => commentPostIds.has(p.id)).map(p => [p.id, p])
+  );
+
+  const likedEntries = db.likes
+    .filter(l => l.userId === userId)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const likedPostIds = likedEntries.map(l => l.postId);
+  const likedPostIdSet = new Set(likedPostIds);
+  const likedPosts = db.posts
+    .filter(p => likedPostIdSet.has(p.id))
+    .sort((a, b) => likedPostIds.indexOf(a.id) - likedPostIds.indexOf(b.id));
+
+  const likeCountMap = new Map();
+  db.likes.forEach(l => {
+    likeCountMap.set(l.postId, (likeCountMap.get(l.postId) || 0) + 1);
+  });
+
+  const commentCountMap = new Map();
+  db.comments.forEach(c => {
+    commentCountMap.set(c.postId, (commentCountMap.get(c.postId) || 0) + 1);
+  });
+
+  const me = getCurrentUser();
+  const myLikedPostIds = new Set(
+    db.likes.filter(l => l.userId === (me ? me.id : null)).map(l => l.postId)
+  );
+
+  return { userMap, userPosts, userComments, commentPostMap, likedPosts, likeCountMap, commentCountMap, myLikedPostIds };
+}
+
+/* =====================================================
    HTML ビルダー（再利用部品）
 ===================================================== */
 function buildAvatarHtml(user, sizeClass = '') {
@@ -370,13 +416,13 @@ function buildAvatarHtml(user, sizeClass = '') {
   </div>`;
 }
 
-function buildPostCard(post, currentUser) {
-  const author = getUserById(post.userId);
+function buildPostCard(post, currentUser, cache = null) {
+  const author = cache ? cache.userMap.get(post.userId) : getUserById(post.userId);
   if (!author) return '';
   const isOwn = currentUser && currentUser.id === post.userId;
-  const liked = isLikedByMe(post.id);
-  const likeCount = getLikeCount(post.id);
-  const commentCount = db.comments.filter(c => c.postId === post.id).length;
+  const liked = cache ? cache.myLikedPostIds.has(post.id) : isLikedByMe(post.id);
+  const likeCount = cache ? (cache.likeCountMap.get(post.id) || 0) : getLikeCount(post.id);
+  const commentCount = cache ? (cache.commentCountMap.get(post.id) || 0) : db.comments.filter(c => c.postId === post.id).length;
 
   let imagesHtml = '';
   if (post.imageDataUrls && post.imageDataUrls.length > 0) {
@@ -462,6 +508,34 @@ function buildCommentItem(comment, currentUser) {
         <span class="comment-date">${formatDate(comment.createdAt)}</span>
         ${menuHtml}
       </div>
+      <div class="comment-content">${escapeHtml(comment.content)}</div>
+    </div>
+  </div>`;
+}
+
+function buildProfileCommentItem(comment, post, currentUser, cache = null) {
+  const author = cache ? cache.userMap.get(comment.userId) : getUserById(comment.userId);
+  if (!author) return '';
+  const postAuthor = post
+    ? (cache ? cache.userMap.get(post.userId) : getUserById(post.userId))
+    : null;
+
+  const postPreview = post
+    ? `<div class="profile-comment-post-link" data-action="go-post-detail" data-post-id="${post.id}">
+        <span class="profile-comment-post-label">返信先:</span>
+        <span class="profile-comment-post-author">${postAuthor ? escapeHtml(postAuthor.username) : '不明'}</span>
+        <span class="profile-comment-post-snippet">${escapeHtml(post.content.slice(0, 50))}${post.content.length > 50 ? '…' : ''}</span>
+      </div>`
+    : '';
+
+  return `<div class="comment-item profile-comment-item" data-comment-id="${comment.id}">
+    ${buildAvatarHtml(author, 'avatar')}
+    <div class="comment-right">
+      <div class="comment-header">
+        <span class="comment-username" data-action="go-profile" data-user-id="${author.id}" style="cursor:pointer">${escapeHtml(author.username)}</span>
+        <span class="comment-date">${formatDate(comment.createdAt)}</span>
+      </div>
+      ${postPreview}
       <div class="comment-content">${escapeHtml(comment.content)}</div>
     </div>
   </div>`;
@@ -608,6 +682,7 @@ function doRegister() {
    画面: タイムライン
 ===================================================== */
 let _currentTab = 'all'; // 'all' | 'following'
+let _currentProfileTab = 'posts'; // 'posts' | 'comments' | 'likes'
 
 function renderTimeline() {
   if (!requireAuth()) return;
@@ -888,7 +963,8 @@ function renderProfile(userId) {
   const following = isFollowing(userId);
   const followerCount = getFollowerCount(userId);
   const followingCount = getFollowingCount(userId);
-  const userPosts = db.posts.filter(p => p.userId === userId).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const cache = buildProfileTabData(userId);
 
   let actionBtn = '';
   if (isMe) {
@@ -899,9 +975,7 @@ function renderProfile(userId) {
       : `<button class="btn-follow" data-action="toggle-follow" data-user-id="${userId}" id="follow-btn">フォローする</button>`;
   }
 
-  const postsHtml = userPosts.length === 0
-    ? '<div class="profile-empty">まだ投稿がありません。</div>'
-    : userPosts.map(p => buildPostCard(p, me)).join('');
+  const tabContentHtml = buildProfileTabContent(_currentProfileTab, userId, me, cache);
 
   document.getElementById('app-main').innerHTML = `
     <div class="page-fade">
@@ -929,9 +1003,29 @@ function renderProfile(userId) {
           </div>
         </div>
       </div>
-      <div class="profile-posts-title">投稿 (${userPosts.length}件)</div>
-      <div id="profile-post-list">${postsHtml}</div>
+      <div class="profile-tabs tabs" data-user-id="${userId}">
+        <button class="tab-btn profile-tab-btn ${_currentProfileTab === 'posts' ? 'active' : ''}" data-action="switch-profile-tab" data-tab="posts">投稿 (${cache.userPosts.length})</button>
+        <button class="tab-btn profile-tab-btn ${_currentProfileTab === 'comments' ? 'active' : ''}" data-action="switch-profile-tab" data-tab="comments">コメント (${cache.userComments.length})</button>
+        <button class="tab-btn profile-tab-btn ${_currentProfileTab === 'likes' ? 'active' : ''}" data-action="switch-profile-tab" data-tab="likes">いいね (${cache.likedPosts.length})</button>
+      </div>
+      <div id="profile-tab-content">${tabContentHtml}</div>
     </div>`;
+}
+
+function buildProfileTabContent(tab, userId, me, cache) {
+  if (tab === 'posts') {
+    if (cache.userPosts.length === 0) return '<div class="profile-empty">まだ投稿がありません。</div>';
+    return cache.userPosts.map(p => buildPostCard(p, me, cache)).join('');
+  }
+  if (tab === 'comments') {
+    if (cache.userComments.length === 0) return '<div class="profile-empty">まだコメントがありません。</div>';
+    return cache.userComments.map(c => buildProfileCommentItem(c, cache.commentPostMap.get(c.postId) || null, me, cache)).join('');
+  }
+  if (tab === 'likes') {
+    if (cache.likedPosts.length === 0) return '<div class="profile-empty">まだいいねした投稿がありません。</div>';
+    return cache.likedPosts.map(p => buildPostCard(p, me, cache)).join('');
+  }
+  return '';
 }
 
 /* =====================================================
@@ -1119,7 +1213,7 @@ function route() {
     { pattern: /^#post\/(.+)$/,        handler: (m) => renderPostDetail(m[1]) },
     { pattern: /^#search$/,            handler: () => renderSearch() },
     { pattern: /^#users\/(.+)\/edit$/, handler: (m) => renderProfileEdit(m[1]) },
-    { pattern: /^#users\/(.+)$/,       handler: (m) => renderProfile(m[1]) },
+    { pattern: /^#users\/(.+)$/,       handler: (m) => { _currentProfileTab = 'posts'; renderProfile(m[1]); } },
   ];
 
   for (const r of routes) {
@@ -1189,8 +1283,24 @@ document.addEventListener('click', (e) => {
     // タブ
     case 'switch-tab': {
       _currentTab = el.dataset.tab;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === _currentTab));
+      document.querySelectorAll('.tab-btn:not(.profile-tab-btn)').forEach(b => b.classList.toggle('active', b.dataset.tab === _currentTab));
       renderPostList();
+      break;
+    }
+
+    // プロフィールタブ
+    case 'switch-profile-tab': {
+      _currentProfileTab = el.dataset.tab;
+      document.querySelectorAll('.profile-tab-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.tab === _currentProfileTab)
+      );
+      const tabContainer = el.closest('[data-user-id]');
+      const profileUserId = tabContainer ? tabContainer.dataset.userId : null;
+      if (!profileUserId) break;
+      const profileMe = getCurrentUser();
+      const profileCache = buildProfileTabData(profileUserId);
+      const contentEl = document.getElementById('profile-tab-content');
+      if (contentEl) contentEl.innerHTML = buildProfileTabContent(_currentProfileTab, profileUserId, profileMe, profileCache);
       break;
     }
 
