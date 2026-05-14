@@ -5,6 +5,7 @@ import type { PostResponse } from '../types/post'
 import PostForm from '../components/PostForm'
 import PostCard from '../components/PostCard'
 import EditPostModal from '../components/EditPostModal'
+import CommentPanel from '../components/CommentPanel'
 
 const POLL_INTERVAL = 30_000
 
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [editingPost, setEditingPost] = useState<PostResponse | null>(null)
   const [pendingPosts, setPendingPosts] = useState<PostResponse[]>([])
+  const [commentPost, setCommentPost] = useState<PostResponse | null>(null)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
   const topPostIdRef = useRef<number | null>(null)
@@ -137,6 +139,18 @@ export default function HomePage() {
     setEditingPost(post)
   }
 
+  const handleComment = (post: PostResponse) => {
+    setCommentPost(post)
+  }
+
+  const handleCommentCountChange = (postId: number, delta: number) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, commentCount: p.commentCount + delta } : p,
+      ),
+    )
+  }
+
   const handleSaveEdit = async (content: string) => {
     if (!editingPost) return
     const updated = await updatePost(editingPost.id, content)
@@ -195,6 +209,7 @@ export default function HomePage() {
               onLike={handleLike}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onComment={handleComment}
             />
           ))
         )}
@@ -212,6 +227,15 @@ export default function HomePage() {
           post={editingPost}
           onSave={handleSaveEdit}
           onClose={() => setEditingPost(null)}
+        />
+      )}
+
+      {commentPost && (
+        <CommentPanel
+          post={commentPost}
+          currentUserId={user.id}
+          onClose={() => setCommentPost(null)}
+          onCommentCountChange={handleCommentCountChange}
         />
       )}
     </>

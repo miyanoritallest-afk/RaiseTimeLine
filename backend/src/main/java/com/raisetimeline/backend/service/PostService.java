@@ -22,8 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -59,13 +59,23 @@ public class PostService {
 
         Long nextCursor = hasMore ? posts.get(posts.size() - 1).getId() : null;
 
+        if (posts.isEmpty()) {
+            return new PagedResponse<>(List.of(), nextCursor, hasMore);
+        }
+
         Set<Long> postIds = posts.stream().map(Post::getId).collect(Collectors.toSet());
-        Set<Long> likedPostIds = postIds.isEmpty()
-            ? Set.of()
-            : likeRepository.findLikedPostIdsByUserIdAndPostIds(currentUserId, postIds);
+        Set<Long> authorIds = posts.stream().map(p -> p.getUser().getId()).collect(Collectors.toSet());
+
+        Set<Long> likedPostIds = likeRepository.findLikedPostIdsByUserIdAndPostIds(currentUserId, postIds);
+        Map<Long, Long> likeCountMap    = toCountMap(likeRepository.countByPostIds(postIds));
+        Map<Long, Long> commentCountMap = toCountMap(commentRepository.countByPostIds(postIds));
+        Map<Long, Long> followersMap    = toCountMap(followRepository.countFollowersByUserIds(authorIds));
+        Map<Long, Long> followingMap    = toCountMap(followRepository.countFollowingByUserIds(authorIds));
+        Set<Long> followingIds          = followRepository.findFollowingIdsByFollowerIdAndUserIds(currentUserId, authorIds);
 
         List<PostResponse> items = posts.stream()
-            .map(p -> toPostResponse(p, likedPostIds.contains(p.getId()), currentUserId))
+            .map(p -> toPostResponse(p, likedPostIds.contains(p.getId()), currentUserId,
+                likeCountMap, commentCountMap, followersMap, followingMap, followingIds))
             .toList();
 
         return new PagedResponse<>(items, nextCursor, hasMore);
@@ -90,7 +100,9 @@ public class PostService {
             post.setImages(images);
         }
         post = postRepository.save(post);
-        return toPostResponse(post, false, userId);
+        User savedUser = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("ユーザーが見つかりません"));
+        return toPostResponseSingle(post, false, userId, savedUser);
     }
 
     @Transactional
@@ -113,7 +125,7 @@ public class PostService {
         }
         post = postRepository.save(post);
         boolean liked = likeRepository.existsByPostIdAndUserId(postId, currentUserId);
-        return toPostResponse(post, liked, currentUserId);
+        return toPostResponseSingle(post, liked, currentUserId, post.getUser());
     }
 
     @Transactional
@@ -132,20 +144,43 @@ public class PostService {
         if (posts.isEmpty()) return List.of();
 
         Set<Long> postIds = posts.stream().map(Post::getId).collect(Collectors.toSet());
-        Set<Long> likedPostIds = likeRepository
-            .findLikedPostIdsByUserIdAndPostIds(currentUserId, postIds);
+        Set<Long> authorIds = posts.stream().map(p -> p.getUser().getId()).collect(Collectors.toSet());
+
+        Set<Long> likedPostIds          = likeRepository.findLikedPostIdsByUserIdAndPostIds(currentUserId, postIds);
+        Map<Long, Long> likeCountMap    = toCountMap(likeRepository.countByPostIds(postIds));
+        Map<Long, Long> commentCountMap = toCountMap(commentRepository.countByPostIds(postIds));
+        Map<Long, Long> followersMap    = toCountMap(followRepository.countFollowersByUserIds(authorIds));
+        Map<Long, Long> followingMap    = toCountMap(followRepository.countFollowingByUserIds(authorIds));
+        Set<Long> followingIds          = followRepository.findFollowingIdsByFollowerIdAndUserIds(currentUserId, authorIds);
 
         return posts.stream()
-            .map(p -> toPostResponse(p, likedPostIds.contains(p.getId()), currentUserId))
+            .map(p -> toPostResponse(p, likedPostIds.contains(p.getId()), currentUserId,
+                likeCountMap, commentCountMap, followersMap, followingMap, followingIds))
             .toList();
     }
 
-    PostResponse toPostResponse(Post post, boolean likedByMe, Long currentUserId) {
+    private PostResponse toPostResponseSingle(Post post, boolean likedByMe, Long currentUserId, User author) {
+        List<Long> pid = List.of(post.getId());
+        List<Long> aid = List.of(author.getId());
+        Map<Long, Long> likeCountMap    = toCountMap(likeRepository.countByPostIds(pid));
+        Map<Long, Long> commentCountMap = toCountMap(commentRepository.countByPostIds(pid));
+        Map<Long, Long> followersMap    = toCountMap(followRepository.countFollowersByUserIds(aid));
+        Map<Long, Long> followingMap    = toCountMap(followRepository.countFollowingByUserIds(aid));
+        Set<Long> followingIds          = followRepository.findFollowingIdsByFollowerIdAndUserIds(currentUserId, aid);
+        return toPostResponse(post, likedByMe, currentUserId,
+            likeCountMap, commentCountMap, followersMap, followingMap, followingIds);
+    }
+
+    PostResponse toPostResponse(Post post, boolean likedByMe, Long currentUserId,
+                                Map<Long, Long> likeCountMap,
+                                Map<Long, Long> commentCountMap,
+                                Map<Long, Long> followersCountMap,
+                                Map<Long, Long> followingCountMap,
+                                Set<Long> followingIds) {
         User author = post.getUser();
-        long followersCount = followRepository.countByFollowingId(author.getId());
-        long followingCount = followRepository.countByFollowerId(author.getId());
-        boolean isFollowing = !author.getId().equals(currentUserId)
-            && followRepository.existsByFollowerIdAndFollowingId(currentUserId, author.getId());
+        long followersCount = followersCountMap.getOrDefault(author.getId(), 0L);
+        long followingCount = followingCountMap.getOrDefault(author.getId(), 0L);
+        boolean isFollowing = followingIds.contains(author.getId());
 
         UserResponse authorResponse = new UserResponse(
             author.getId(),
@@ -162,8 +197,8 @@ public class PostService {
             .map(PostImage::getImageUrl)
             .toList();
 
-        long likeCount = likeRepository.countByPostId(post.getId());
-        long commentCount = commentRepository.countByPostId(post.getId());
+        long likeCount    = likeCountMap.getOrDefault(post.getId(), 0L);
+        long commentCount = commentCountMap.getOrDefault(post.getId(), 0L);
 
         return new PostResponse(
             post.getId(),
@@ -175,6 +210,12 @@ public class PostService {
             likedByMe,
             post.getCreatedAt(),
             post.getUpdatedAt()
+        );
+    }
+
+    private Map<Long, Long> toCountMap(List<Object[]> rows) {
+        return rows.stream().collect(
+            Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1])
         );
     }
 }

@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +44,7 @@ public class CommentService {
         comment = commentRepository.save(comment);
         User savedUser = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("ユーザーが見つかりません"));
-        return toCommentResponse(comment, savedUser, postId);
+        return toCommentResponseSingle(comment, savedUser, postId);
     }
 
     @Transactional
@@ -53,7 +56,7 @@ public class CommentService {
         }
         comment.setContent(req.content());
         comment = commentRepository.save(comment);
-        return toCommentResponse(comment, comment.getUser(), comment.getPost().getId());
+        return toCommentResponseSingle(comment, comment.getUser(), comment.getPost().getId());
     }
 
     @Transactional
@@ -68,14 +71,33 @@ public class CommentService {
 
     @Transactional(readOnly = true)
     public List<CommentResponse> getCommentsByPost(Long postId) {
-        return commentRepository.findByPostIdOrderByCreatedAtAsc(postId).stream()
-            .map(c -> toCommentResponse(c, c.getUser(), postId))
+        List<Comment> comments = commentRepository.findByPostIdOrderByCreatedAtAsc(postId);
+        if (comments.isEmpty()) return List.of();
+
+        Set<Long> authorIds = comments.stream()
+            .map(c -> c.getUser().getId())
+            .collect(Collectors.toSet());
+
+        Map<Long, Long> followersCountMap = toCountMap(followRepository.countFollowersByUserIds(authorIds));
+        Map<Long, Long> followingCountMap = toCountMap(followRepository.countFollowingByUserIds(authorIds));
+
+        return comments.stream()
+            .map(c -> toCommentResponse(c, c.getUser(), postId, followersCountMap, followingCountMap))
             .toList();
     }
 
-    private CommentResponse toCommentResponse(Comment comment, User author, Long postId) {
-        long followersCount = followRepository.countByFollowingId(author.getId());
-        long followingCount = followRepository.countByFollowerId(author.getId());
+    private CommentResponse toCommentResponseSingle(Comment comment, User author, Long postId) {
+        List<Long> aid = List.of(author.getId());
+        Map<Long, Long> followersMap = toCountMap(followRepository.countFollowersByUserIds(aid));
+        Map<Long, Long> followingMap = toCountMap(followRepository.countFollowingByUserIds(aid));
+        return toCommentResponse(comment, author, postId, followersMap, followingMap);
+    }
+
+    private CommentResponse toCommentResponse(Comment comment, User author, Long postId,
+                                              Map<Long, Long> followersCountMap,
+                                              Map<Long, Long> followingCountMap) {
+        long followersCount = followersCountMap.getOrDefault(author.getId(), 0L);
+        long followingCount = followingCountMap.getOrDefault(author.getId(), 0L);
         UserResponse authorResponse = new UserResponse(
             author.getId(),
             author.getUsername(),
@@ -93,6 +115,12 @@ public class CommentService {
             comment.getContent(),
             comment.getCreatedAt(),
             comment.getUpdatedAt()
+        );
+    }
+
+    private Map<Long, Long> toCountMap(List<Object[]> rows) {
+        return rows.stream().collect(
+            Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1])
         );
     }
 }

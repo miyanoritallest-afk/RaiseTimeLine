@@ -21,3 +21,12 @@ export interface PagedResponse<T> {
   nextCursor: number | null
   hasMore: boolean
 }
+
+export interface CommentResponse {
+  id: number
+  postId: number
+  author: Author
+  content: string
+  createdAt: string
+  updatedAt: string
+}

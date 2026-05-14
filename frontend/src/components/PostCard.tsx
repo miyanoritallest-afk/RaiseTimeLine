@@ -9,6 +9,7 @@ interface PostCardProps {
   onLike: (id: number, liked: boolean) => void
   onEdit: (post: PostResponse) => void
   onDelete: (id: number) => void
+  onComment: (post: PostResponse) => void
 }
 
 function formatDate(iso: string): string {
@@ -24,7 +25,7 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
 }
 
-export default function PostCard({ post, currentUserId, onLike, onEdit, onDelete }: PostCardProps) {
+export default function PostCard({ post, currentUserId, onLike, onEdit, onDelete, onComment }: PostCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const isOwn = post.author.id === currentUserId
@@ -89,7 +90,7 @@ export default function PostCard({ post, currentUserId, onLike, onEdit, onDelete
             <span className="action-icon">{post.likedByMe ? '♥' : '♡'}</span>
             {post.likeCount > 0 && <span className="action-count">{post.likeCount}</span>}
           </button>
-          <button className="action-btn">
+          <button className="action-btn" onClick={() => onComment(post)}>
             <span className="action-icon">💬</span>
             {post.commentCount > 0 && <span className="action-count">{post.commentCount}</span>}
           </button>

@@ -1,5 +1,5 @@
 import client from './client'
-import type { PostResponse, PagedResponse } from '../types/post'
+import type { PostResponse, PagedResponse, CommentResponse } from '../types/post'
 
 export function getTimeline(
   feed: 'all' | 'following',
@@ -27,4 +27,20 @@ export function toggleLike(id: number, liked: boolean): Promise<void> {
     ? client.delete(`/posts/${id}/likes`)
     : client.post(`/posts/${id}/likes`)
   return req.then(() => undefined)
+}
+
+export function getComments(postId: number): Promise<CommentResponse[]> {
+  return client.get(`/posts/${postId}/comments`).then((r) => r.data)
+}
+
+export function createComment(postId: number, content: string): Promise<CommentResponse> {
+  return client.post(`/posts/${postId}/comments`, { content }).then((r) => r.data)
+}
+
+export function updateComment(commentId: number, content: string): Promise<CommentResponse> {
+  return client.patch(`/comments/${commentId}`, { content }).then((r) => r.data)
+}
+
+export function deleteComment(commentId: number): Promise<void> {
+  return client.delete(`/comments/${commentId}`).then(() => undefined)
 }

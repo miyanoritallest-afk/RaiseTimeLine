@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Map;
 
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
@@ -24,4 +25,7 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     @Query("SELECT l FROM Like l JOIN FETCH l.post WHERE l.user.id = :userId ORDER BY l.createdAt DESC")
     List<Like> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId);
+
+    @Query("SELECT l.post.id, COUNT(l) FROM Like l WHERE l.post.id IN :postIds GROUP BY l.post.id")
+    List<Object[]> countByPostIds(@Param("postIds") Collection<Long> postIds);
 }
