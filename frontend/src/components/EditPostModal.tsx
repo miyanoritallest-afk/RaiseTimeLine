@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { PostResponse } from '../types/post'
+import { getCharCountClass, POST_MAX_LENGTH } from '../utils/charCount'
 
 interface EditPostModalProps {
   post: PostResponse
@@ -11,17 +12,21 @@ export default function EditPostModal({ post, onSave, onClose }: EditPostModalPr
   const [content, setContent] = useState(post.content)
   const [saving, setSaving] = useState(false)
 
+  const [error, setError] = useState<string | null>(null)
   const length = content.length
-  const overLimit = length > 280
+  const overLimit = length > POST_MAX_LENGTH
   const isEmpty = content.trim().length === 0
-  const charCountClass = length >= 270 ? 'char-count danger' : length >= 260 ? 'char-count warning' : 'char-count'
+  const charCountClass = getCharCountClass(length)
 
   const handleSave = async () => {
     if (isEmpty || overLimit || saving) return
     setSaving(true)
+    setError(null)
     try {
       await onSave(content.trim())
       onClose()
+    } catch {
+      setError('保存に失敗しました。もう一度お試しください。')
     } finally {
       setSaving(false)
     }
@@ -42,6 +47,7 @@ export default function EditPostModal({ post, onSave, onClose }: EditPostModalPr
             onChange={(e) => setContent(e.target.value)}
             autoFocus
           />
+          {error && <p style={{ color: 'var(--color-danger)', fontSize: '13px', marginBottom: '8px' }}>{error}</p>}
           <div className="edit-post-footer">
             <span className={charCountClass}>{280 - length}</span>
             <div className="edit-post-actions">

@@ -4,14 +4,11 @@ interface AvatarProps {
   size?: 'sm' | 'md' | 'lg'
 }
 
-const SIZE_MAP = { sm: 32, md: 40, lg: 72 }
+const SIZE_CLASS: Record<string, string> = { sm: 'avatar avatar-sm', md: 'avatar', lg: 'avatar avatar-lg' }
 
 export default function Avatar({ avatarUrl, username, size = 'md' }: AvatarProps) {
-  const px = SIZE_MAP[size]
-  const className = size === 'lg' ? 'avatar avatar-lg' : 'avatar'
-
   return (
-    <div className={className} style={{ width: px, height: px }}>
+    <div className={SIZE_CLASS[size]}>
       {avatarUrl ? (
         <img src={avatarUrl} alt={username} />
       ) : (

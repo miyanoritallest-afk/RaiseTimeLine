@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import type { PostResponse } from '../types/post'
 import Avatar from './Avatar'
+import { useClickOutside } from '../hooks/useClickOutside'
 
 interface PostCardProps {
   post: PostResponse
@@ -28,15 +29,8 @@ export default function PostCard({ post, currentUserId, onLike, onEdit, onDelete
   const menuRef = useRef<HTMLDivElement>(null)
   const isOwn = post.author.id === currentUserId
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
+  useClickOutside(menuRef, closeMenu)
 
   const handleDelete = () => {
     setMenuOpen(false)

@@ -484,6 +484,7 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 .avatar svg { width: 100%; height: 100%; }
+.avatar-sm { width: 32px; height: 32px; }
 .avatar-lg { width: 72px; height: 72px; }
 .avatar-xl { width: 80px; height: 80px; }
 

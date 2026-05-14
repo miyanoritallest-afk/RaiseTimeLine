@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Avatar from './Avatar'
+import { useClickOutside } from '../hooks/useClickOutside'
 
 export default function AppHeader() {
   const { user, logout } = useAuth()
@@ -9,15 +10,8 @@ export default function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
+  useClickOutside(menuRef, closeMenu)
 
   const handleLogout = async () => {
     setMenuOpen(false)

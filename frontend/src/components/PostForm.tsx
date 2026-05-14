@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { createPost } from '../api/posts'
 import type { PostResponse } from '../types/post'
 import Avatar from './Avatar'
+import { getCharCountClass, POST_MAX_LENGTH } from '../utils/charCount'
 
 interface PostFormProps {
   onPosted: (post: PostResponse) => void
@@ -15,10 +16,9 @@ export default function PostForm({ onPosted }: PostFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const length = content.length
-  const overLimit = length > 280
+  const overLimit = length > POST_MAX_LENGTH
   const isEmpty = content.trim().length === 0
-
-  const charCountClass = length >= 270 ? 'char-count danger' : length >= 260 ? 'char-count warning' : 'char-count'
+  const charCountClass = getCharCountClass(length)
 
   const handleSubmit = async () => {
     if (isEmpty || overLimit || submitting) return
@@ -28,6 +28,8 @@ export default function PostForm({ onPosted }: PostFormProps) {
       setContent('')
       if (textareaRef.current) textareaRef.current.style.height = 'auto'
       onPosted(post)
+    } catch {
+      // 投稿失敗時はフォームを維持してユーザーが再投稿できるようにする
     } finally {
       setSubmitting(false)
     }
@@ -77,6 +79,7 @@ export default function PostForm({ onPosted }: PostFormProps) {
             >
               {submitting ? '投稿中...' : '投稿する'}
             </button>
+
           </div>
         </div>
       </div>
