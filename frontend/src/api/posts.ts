@@ -1,0 +1,30 @@
+import client from './client'
+import type { PostResponse, PagedResponse } from '../types/post'
+
+export function getTimeline(
+  feed: 'all' | 'following',
+  cursor?: number,
+): Promise<PagedResponse<PostResponse>> {
+  const params: Record<string, string | number> = { feed }
+  if (cursor != null) params.cursor = cursor
+  return client.get('/posts', { params }).then((r) => r.data)
+}
+
+export function createPost(content: string): Promise<PostResponse> {
+  return client.post('/posts', { content }).then((r) => r.data)
+}
+
+export function updatePost(id: number, content: string): Promise<PostResponse> {
+  return client.patch(`/posts/${id}`, { content }).then((r) => r.data)
+}
+
+export function deletePost(id: number): Promise<void> {
+  return client.delete(`/posts/${id}`).then(() => undefined)
+}
+
+export function toggleLike(id: number, liked: boolean): Promise<void> {
+  const req = liked
+    ? client.delete(`/posts/${id}/likes`)
+    : client.post(`/posts/${id}/likes`)
+  return req.then(() => undefined)
+}
