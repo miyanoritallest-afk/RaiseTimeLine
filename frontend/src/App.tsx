@@ -1,9 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import AppHeader from './components/AppHeader'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import HomePage from './pages/HomePage'
+
+function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <AppHeader />
+      {children}
+    </>
+  )
+}
 
 export default function App() {
   return (
@@ -16,7 +26,9 @@ export default function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <HomePage />
+                <AuthenticatedLayout>
+                  <HomePage />
+                </AuthenticatedLayout>
               </ProtectedRoute>
             }
           />

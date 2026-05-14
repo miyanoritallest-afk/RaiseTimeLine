@@ -484,6 +484,7 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 .avatar svg { width: 100%; height: 100%; }
+.avatar-sm { width: 32px; height: 32px; }
 .avatar-lg { width: 72px; height: 72px; }
 .avatar-xl { width: 80px; height: 80px; }
 
@@ -843,36 +844,20 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
   .modal-list { width: 95%; }
 }
 
-/* ========== ログイン後ホーム画面（動作確認用） ========== */
-.home-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 24px;
-  background: var(--color-bg-secondary);
-}
-.success-card {
-  background: var(--color-bg);
-  border-radius: 16px;
-  box-shadow: 0 0 0 1px var(--color-border), 0 4px 16px rgba(0,0,0,0.06);
-  padding: 40px;
+/* ========== 新着投稿バナー ========== */
+.new-posts-banner {
+  display: block;
   width: 100%;
-  max-width: 400px;
+  padding: 12px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
   text-align: center;
+  border-radius: 0;
+  position: sticky;
+  top: var(--header-height);
+  z-index: 20;
+  transition: background 0.15s;
 }
-.success-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-.success-title {
-  font-size: 24px;
-  font-weight: 800;
-  margin-bottom: 8px;
-  color: var(--color-text);
-}
-.success-subtitle {
-  font-size: 16px;
-  color: var(--color-text-secondary);
-  margin-bottom: 32px;
-}
+.new-posts-banner:hover { background: var(--color-primary-hover); }
