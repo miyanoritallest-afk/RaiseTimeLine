@@ -357,14 +357,17 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
 .post-image-btn {
   width: 36px; height: 36px;
   border-radius: 50%;
+  border: none;
+  background: transparent;
   color: var(--color-primary);
   font-size: 18px;
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s;
   cursor: pointer;
+  padding: 0;
 }
-.post-image-btn:hover:not(.post-image-btn--disabled) { background: rgba(29,155,240,0.1); }
-.post-image-btn--disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+.post-image-btn:hover:not(:disabled) { background: rgba(29,155,240,0.1); }
+.post-image-btn:disabled { opacity: 0.4; cursor: default; }
 .post-image-previews {
   display: flex;
   flex-wrap: wrap;
@@ -988,13 +991,14 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
 /* ========== プロフィール編集ヘッダー ========== */
 .edit-profile-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
 .change-avatar-btn {
+  position: relative;
+  cursor: pointer;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
   border: 1px solid var(--color-border);
   background: transparent;
-  cursor: pointer;
   color: var(--color-text);
   transition: background 0.15s;
 }

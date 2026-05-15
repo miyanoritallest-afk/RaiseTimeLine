@@ -18,6 +18,7 @@ export default function PostForm({ onPosted }: PostFormProps) {
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
 
   const length = content.length
   const overLimit = length > POST_MAX_LENGTH
@@ -118,24 +119,23 @@ export default function PostForm({ onPosted }: PostFormProps) {
         <div className="post-form-divider" />
         <div className="post-form-footer">
           <div className="post-form-tools">
-            <input
-              id="post-image-input"
-              type="file"
-              accept="image/*"
-              multiple
-              style={{ display: 'none' }}
-              onChange={handleImageSelect}
-              disabled={imageFiles.length >= 4}
-            />
             <label
               htmlFor="post-image-input"
               className={`post-image-btn${imageFiles.length >= 4 ? ' post-image-btn--disabled' : ''}`}
               title="画像を追加"
-              role="button"
-              aria-label="画像を追加"
             >
               🖼
             </label>
+            <input
+              id="post-image-input"
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              style={{ visibility: 'hidden', width: 0, height: 0, position: 'absolute' }}
+              onChange={handleImageSelect}
+              disabled={imageFiles.length >= 4}
+            />
           </div>
           <div className="post-form-right">
             {length > 0 && (
