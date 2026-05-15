@@ -28,6 +28,13 @@ public class PostController {
         return postService.getTimeline(feed, cursor, userId);
     }
 
+    @GetMapping("/{id}")
+    public PostResponse getPost(@PathVariable Long id,
+                                @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        return postService.getPost(id, userId);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PostResponse createPost(@Valid @RequestBody CreatePostRequest req,

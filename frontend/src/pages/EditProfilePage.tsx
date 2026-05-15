@@ -52,7 +52,7 @@ export default function EditProfilePage() {
     try {
       let avatarUrl: string | null = currentUser.avatarUrl
       if (avatarFile) {
-        const uploaded = await uploadImage(avatarFile)
+        const uploaded = await uploadImage(avatarFile, 'avatars')
         avatarUrl = uploaded.url
       }
       const updated = await updateUser(userId, {

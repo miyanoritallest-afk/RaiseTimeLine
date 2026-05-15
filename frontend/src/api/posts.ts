@@ -10,8 +10,12 @@ export function getTimeline(
   return client.get('/posts', { params }).then((r) => r.data)
 }
 
-export function createPost(content: string): Promise<PostResponse> {
-  return client.post('/posts', { content }).then((r) => r.data)
+export function getPost(id: number): Promise<PostResponse> {
+  return client.get(`/posts/${id}`).then((r) => r.data)
+}
+
+export function createPost(content: string, imageUrls?: string[]): Promise<PostResponse> {
+  return client.post('/posts', { content, imageUrls }).then((r) => r.data)
 }
 
 export function updatePost(id: number, content: string): Promise<PostResponse> {

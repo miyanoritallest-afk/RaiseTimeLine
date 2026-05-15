@@ -31,6 +31,8 @@ app:
     secret: ${JWT_SECRET:dGhpcy1pcy1hLXZlcnktbG9uZy1zZWNyZXQta2V5LWZvci1kZXZlbG9wbWVudC1vbmx5LXVzZQ==}
     expiration-ms: 900000
     refresh-expiration-ms: 604800000
+  upload:
+    base-dir: uploads
 
 logging:
   level:

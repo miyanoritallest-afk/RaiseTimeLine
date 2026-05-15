@@ -37,9 +37,10 @@ export function searchUsers(q: string): Promise<UserResponse[]> {
   return client.get('/users', { params: { q } }).then((r) => r.data)
 }
 
-export function uploadImage(file: File): Promise<{ url: string }> {
+export function uploadImage(file: File, type: 'avatars' | 'posts' = 'posts'): Promise<{ url: string }> {
   const formData = new FormData()
   formData.append('file', file)
+  formData.append('type', type)
   return client
     .post('/upload', formData, { headers: { 'Content-Type': undefined } })
     .then((r) => r.data)

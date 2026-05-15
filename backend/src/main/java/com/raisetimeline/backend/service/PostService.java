@@ -81,6 +81,14 @@ public class PostService {
         return new PagedResponse<>(items, nextCursor, hasMore);
     }
 
+    @Transactional(readOnly = true)
+    public PostResponse getPost(Long postId, Long currentUserId) {
+        Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new ResourceNotFoundException("投稿が見つかりません"));
+        boolean liked = likeRepository.existsByPostIdAndUserId(postId, currentUserId);
+        return toPostResponseSingle(post, liked, currentUserId, post.getUser());
+    }
+
     @Transactional
     public PostResponse createPost(CreatePostRequest req, Long userId) {
         User user = userRepository.getReferenceById(userId);
