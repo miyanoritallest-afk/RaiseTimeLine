@@ -363,8 +363,8 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
   transition: background 0.15s;
   cursor: pointer;
 }
-.post-image-btn:hover:not(:disabled) { background: rgba(29,155,240,0.1); }
-.post-image-btn:disabled { opacity: 0.4; cursor: default; }
+.post-image-btn:hover:not(.post-image-btn--disabled) { background: rgba(29,155,240,0.1); }
+.post-image-btn--disabled { opacity: 0.4; cursor: default; pointer-events: none; }
 .post-image-previews {
   display: flex;
   flex-wrap: wrap;

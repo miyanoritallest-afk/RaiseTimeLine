@@ -85,12 +85,13 @@ export default function EditProfilePage() {
       <div className="edit-avatar-section">
         <div className="edit-avatar-row">
           <Avatar avatarUrl={avatarPreview} username={username} size="lg" />
-          <button className="change-avatar-btn" onClick={() => fileInputRef.current?.click()}>
+          <label htmlFor="avatar-file-input" className="change-avatar-btn" role="button">
             画像を変更
-          </button>
+          </label>
         </div>
         <input
           ref={fileInputRef}
+          id="avatar-file-input"
           type="file"
           accept="image/*"
           style={{ display: 'none' }}
