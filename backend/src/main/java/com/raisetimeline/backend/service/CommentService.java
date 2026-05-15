@@ -70,6 +70,23 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
+    public List<CommentResponse> getCommentsByUser(Long userId) {
+        List<Comment> comments = commentRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        if (comments.isEmpty()) return List.of();
+
+        Set<Long> authorIds = comments.stream()
+            .map(c -> c.getUser().getId())
+            .collect(Collectors.toSet());
+
+        Map<Long, Long> followersCountMap = toCountMap(followRepository.countFollowersByUserIds(authorIds));
+        Map<Long, Long> followingCountMap = toCountMap(followRepository.countFollowingByUserIds(authorIds));
+
+        return comments.stream()
+            .map(c -> toCommentResponse(c, c.getUser(), c.getPost().getId(), followersCountMap, followingCountMap))
+            .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<CommentResponse> getCommentsByPost(Long postId) {
         List<Comment> comments = commentRepository.findByPostIdOrderByCreatedAtAsc(postId);
         if (comments.isEmpty()) return List.of();

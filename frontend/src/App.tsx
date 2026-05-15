@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import EditProfilePage from './pages/EditProfilePage'
 import SearchPage from './pages/SearchPage'
+import PostDetailPage from './pages/PostDetailPage'
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -61,6 +62,16 @@ export default function App() {
               <ProtectedRoute>
                 <AuthenticatedLayout>
                   <SearchPage />
+                </AuthenticatedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/posts/:id"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout>
+                  <PostDetailPage />
                 </AuthenticatedLayout>
               </ProtectedRoute>
             }

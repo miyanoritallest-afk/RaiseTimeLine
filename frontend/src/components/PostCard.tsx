@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { PostResponse } from '../types/post'
 import Avatar from './Avatar'
 import { useClickOutside } from '../hooks/useClickOutside'
+import { formatDate } from '../utils/formatDate'
 
 interface PostCardProps {
   post: PostResponse
@@ -11,19 +12,6 @@ interface PostCardProps {
   onEdit: (post: PostResponse) => void
   onDelete: (id: number) => void
   onComment: (post: PostResponse) => void
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  const now = new Date()
-  const diffMs = now.getTime() - d.getTime()
-  const diffSec = Math.floor(diffMs / 1000)
-  if (diffSec < 60) return `${diffSec}秒`
-  const diffMin = Math.floor(diffSec / 60)
-  if (diffMin < 60) return `${diffMin}分`
-  const diffHour = Math.floor(diffMin / 60)
-  if (diffHour < 24) return `${diffHour}時間`
-  return d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
 }
 
 export default function PostCard({ post, currentUserId, onLike, onEdit, onDelete, onComment }: PostCardProps) {
@@ -82,17 +70,23 @@ export default function PostCard({ post, currentUserId, onLike, onEdit, onDelete
           )}
         </div>
 
-        <p className="post-content">{post.content}</p>
+        <div
+          className="post-content-area"
+          onClick={() => navigate(`/posts/${post.id}`)}
+          style={{ cursor: 'pointer' }}
+        >
+          <p className="post-content">{post.content}</p>
 
-        {post.imageUrls.length > 0 && (
-          <div className="post-images" data-count={post.imageUrls.length}>
-            {post.imageUrls.map((url, i) => (
-              <div key={i} className="post-img-wrap">
-                <img src={url} alt="" className="post-img" />
-              </div>
-            ))}
-          </div>
-        )}
+          {post.imageUrls.length > 0 && (
+            <div className="post-images" data-count={post.imageUrls.length}>
+              {post.imageUrls.map((url, i) => (
+                <div key={i} className="post-img-wrap">
+                  <img src={url} alt="" className="post-img" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="post-actions">
           <button

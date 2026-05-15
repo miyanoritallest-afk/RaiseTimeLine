@@ -52,7 +52,7 @@ export default function EditProfilePage() {
     try {
       let avatarUrl: string | null = currentUser.avatarUrl
       if (avatarFile) {
-        const uploaded = await uploadImage(avatarFile)
+        const uploaded = await uploadImage(avatarFile, 'avatars')
         avatarUrl = uploaded.url
       }
       const updated = await updateUser(userId, {
@@ -85,17 +85,18 @@ export default function EditProfilePage() {
       <div className="edit-avatar-section">
         <div className="edit-avatar-row">
           <Avatar avatarUrl={avatarPreview} username={username} size="lg" />
-          <button className="change-avatar-btn" onClick={() => fileInputRef.current?.click()}>
+          <label htmlFor="avatar-file-input" className="change-avatar-btn">
             画像を変更
-          </button>
+          </label>
+          <input
+            id="avatar-file-input"
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ visibility: 'hidden', width: 0, height: 0, position: 'absolute' }}
+            onChange={handleFileChange}
+          />
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
       </div>
 
       <div className="edit-form">

@@ -5,25 +5,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { useClickOutside } from '../hooks/useClickOutside'
 import Avatar from './Avatar'
 import EditCommentModal from './EditCommentModal'
+import { formatDate } from '../utils/formatDate'
 
 interface CommentPanelProps {
   post: PostResponse
   currentUserId: number
   onClose: () => void
   onCommentCountChange: (postId: number, delta: number) => void
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  const now = new Date()
-  const diffMs = now.getTime() - d.getTime()
-  const diffSec = Math.floor(diffMs / 1000)
-  if (diffSec < 60) return `${diffSec}秒`
-  const diffMin = Math.floor(diffSec / 60)
-  if (diffMin < 60) return `${diffMin}分`
-  const diffHour = Math.floor(diffMin / 60)
-  if (diffHour < 24) return `${diffHour}時間`
-  return d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
 }
 
 interface CommentItemProps {
@@ -33,7 +21,7 @@ interface CommentItemProps {
   onDelete: (commentId: number) => void
 }
 
-function CommentItem({ comment, currentUserId, onEdit, onDelete }: CommentItemProps) {
+export function CommentItem({ comment, currentUserId, onEdit, onDelete }: CommentItemProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const isOwn = comment.author.id === currentUserId
