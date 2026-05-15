@@ -219,9 +219,29 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
 .btn-primary {
   background: var(--color-primary);
   color: #fff;
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 .btn-primary:hover { background: var(--color-primary-hover); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.btn-ghost:hover { background: var(--color-bg-secondary); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-dark {
   background: var(--color-follow-btn);
   color: #fff;
@@ -231,6 +251,13 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
   background: transparent;
   color: var(--color-text);
   border: 1px solid var(--color-border-dark);
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
 }
 .btn-outline:hover { background: var(--color-bg-secondary); }
 .btn-danger {
@@ -931,6 +958,7 @@ textarea { font-family: inherit; font-size: inherit; resize: vertical; }
   background: transparent;
   color: var(--color-text);
   border: 1px solid var(--color-border);
+  white-space: nowrap;
   transition: background 0.15s;
 }
 .btn-secondary:hover { background: var(--color-bg-secondary); }

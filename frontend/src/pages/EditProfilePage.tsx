@@ -76,7 +76,7 @@ export default function EditProfilePage() {
   return (
     <main className="edit-profile-wrapper">
       <div className="edit-profile-header">
-        <button className="back-btn" onClick={() => navigate(`/users/${userId}`)}>
+        <button className="btn-ghost" onClick={() => navigate(`/users/${userId}`)}>
           ← 戻る
         </button>
         <h2 className="edit-profile-title">プロフィールを編集</h2>
@@ -84,7 +84,7 @@ export default function EditProfilePage() {
 
       <div className="edit-avatar-section">
         <div className="edit-avatar-row">
-          <Avatar avatarUrl={avatarPreview} username={username} size="lg" onClick={() => fileInputRef.current?.click()} />
+          <Avatar avatarUrl={avatarPreview} username={username} size="lg" />
           <button className="change-avatar-btn" onClick={() => fileInputRef.current?.click()}>
             画像を変更
           </button>
