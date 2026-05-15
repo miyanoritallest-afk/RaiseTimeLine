@@ -2,13 +2,14 @@ interface AvatarProps {
   avatarUrl: string | null
   username: string
   size?: 'sm' | 'md' | 'lg'
+  onClick?: () => void
 }
 
 const SIZE_CLASS: Record<string, string> = { sm: 'avatar avatar-sm', md: 'avatar', lg: 'avatar avatar-lg' }
 
-export default function Avatar({ avatarUrl, username, size = 'md' }: AvatarProps) {
+export default function Avatar({ avatarUrl, username, size = 'md', onClick }: AvatarProps) {
   return (
-    <div className={SIZE_CLASS[size]}>
+    <div className={SIZE_CLASS[size]} onClick={onClick} style={onClick ? { cursor: 'pointer' } : undefined}>
       {avatarUrl ? (
         <img src={avatarUrl} alt={username} />
       ) : (

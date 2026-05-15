@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { PostResponse } from '../types/post'
 import Avatar from './Avatar'
 import { useClickOutside } from '../hooks/useClickOutside'
@@ -29,6 +30,7 @@ export default function PostCard({ post, currentUserId, onLike, onEdit, onDelete
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const isOwn = post.author.id === currentUserId
+  const navigate = useNavigate()
 
   const closeMenu = useCallback(() => setMenuOpen(false), [])
   useClickOutside(menuRef, closeMenu)
@@ -47,10 +49,20 @@ export default function PostCard({ post, currentUserId, onLike, onEdit, onDelete
 
   return (
     <article className="post-card">
-      <Avatar avatarUrl={post.author.avatarUrl} username={post.author.username} />
+      <Avatar
+        avatarUrl={post.author.avatarUrl}
+        username={post.author.username}
+        onClick={() => navigate(`/users/${post.author.id}`)}
+      />
       <div className="post-card-right">
         <div className="post-card-header">
-          <span className="post-username">{post.author.username}</span>
+          <span
+            className="post-username"
+            style={{ cursor: 'pointer' }}
+            onClick={() => navigate(`/users/${post.author.id}`)}
+          >
+            {post.author.username}
+          </span>
           <span className="post-date">· {formatDate(post.createdAt)}</span>
           {isOwn && (
             <div ref={menuRef} style={{ marginLeft: 'auto', position: 'relative' }}>

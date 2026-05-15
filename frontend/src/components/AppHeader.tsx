@@ -27,23 +27,38 @@ export default function AppHeader() {
         </span>
         <div className="header-actions">
           {user && (
-            <div className="user-menu-wrapper" ref={menuRef}>
+            <>
               <button
-                className="user-menu-trigger"
-                onClick={() => setMenuOpen((o) => !o)}
+                className="header-search-btn"
+                onClick={() => navigate('/search')}
+                aria-label="ユーザー検索"
               >
-                <Avatar avatarUrl={user.avatarUrl} username={user.username} size="sm" />
-                <span className="user-menu-name">{user.username}</span>
-                <span className="user-menu-caret">▾</span>
+                🔍
               </button>
-              {menuOpen && (
-                <div className="dropdown-menu">
-                  <button className="dropdown-item danger" onClick={handleLogout}>
-                    ログアウト
-                  </button>
-                </div>
-              )}
-            </div>
+              <div className="user-menu-wrapper" ref={menuRef}>
+                <button
+                  className="user-menu-trigger"
+                  onClick={() => setMenuOpen((o) => !o)}
+                >
+                  <Avatar avatarUrl={user.avatarUrl} username={user.username} size="sm" />
+                  <span className="user-menu-name">{user.username}</span>
+                  <span className="user-menu-caret">▾</span>
+                </button>
+                {menuOpen && (
+                  <div className="dropdown-menu">
+                    <button
+                      className="dropdown-item"
+                      onClick={() => { setMenuOpen(false); navigate(`/users/${user.id}`) }}
+                    >
+                      プロフィール
+                    </button>
+                    <button className="dropdown-item danger" onClick={handleLogout}>
+                      ログアウト
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
