@@ -31,8 +31,15 @@ app:
     secret: ${JWT_SECRET:dGhpcy1pcy1hLXZlcnktbG9uZy1zZWNyZXQta2V5LWZvci1kZXZlbG9wbWVudC1vbmx5LXVzZQ==}
     expiration-ms: 900000
     refresh-expiration-ms: 604800000
-  upload:
-    base-dir: uploads
+
+aws:
+  s3:
+    region: ${AWS_S3_REGION:ap-northeast-1}
+    bucket-name: ${AWS_S3_BUCKET_NAME:raisetimeline-images-local}
+    public-url-base: ${AWS_S3_PUBLIC_URL_BASE:http://localhost:4566/raisetimeline-images-local}
+    endpoint-override: ${AWS_S3_ENDPOINT_OVERRIDE:http://localhost:4566}
+  access-key-id: ${AWS_ACCESS_KEY_ID:test}
+  secret-access-key: ${AWS_SECRET_ACCESS_KEY:test}
 
 logging:
   level:
