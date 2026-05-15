@@ -5,6 +5,7 @@ import com.raisetimeline.backend.dto.request.UpdatePostRequest;
 import com.raisetimeline.backend.dto.response.PagedResponse;
 import com.raisetimeline.backend.dto.response.PostResponse;
 import com.raisetimeline.backend.dto.response.UserResponse;
+import com.raisetimeline.backend.entity.Like;
 import com.raisetimeline.backend.entity.Post;
 import com.raisetimeline.backend.entity.PostImage;
 import com.raisetimeline.backend.entity.User;
@@ -144,6 +145,28 @@ public class PostService {
             throw new ForbiddenException("他のユーザーの投稿は削除できません");
         }
         postRepository.delete(post);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PostResponse> getLikedPostsByUser(Long userId, Long currentUserId) {
+        List<Like> likes = likeRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        if (likes.isEmpty()) return List.of();
+
+        List<Post> posts = likes.stream().map(Like::getPost).toList();
+        Set<Long> postIds   = posts.stream().map(Post::getId).collect(Collectors.toSet());
+        Set<Long> authorIds = posts.stream().map(p -> p.getUser().getId()).collect(Collectors.toSet());
+
+        Set<Long> likedPostIds          = likeRepository.findLikedPostIdsByUserIdAndPostIds(currentUserId, postIds);
+        Map<Long, Long> likeCountMap    = toCountMap(likeRepository.countByPostIds(postIds));
+        Map<Long, Long> commentCountMap = toCountMap(commentRepository.countByPostIds(postIds));
+        Map<Long, Long> followersMap    = toCountMap(followRepository.countFollowersByUserIds(authorIds));
+        Map<Long, Long> followingMap    = toCountMap(followRepository.countFollowingByUserIds(authorIds));
+        Set<Long> followingIds          = followRepository.findFollowingIdsByFollowerIdAndUserIds(currentUserId, authorIds);
+
+        return posts.stream()
+            .map(p -> toPostResponse(p, likedPostIds.contains(p.getId()), currentUserId,
+                likeCountMap, commentCountMap, followersMap, followingMap, followingIds))
+            .toList();
     }
 
     @Transactional(readOnly = true)

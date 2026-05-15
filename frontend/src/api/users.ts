@@ -1,6 +1,7 @@
 import client from './client'
 import type { UserResponse, FollowUserItem } from '../types/user'
 import type { PagedResponse, PostResponse } from '../types/post'
+import type { CommentResponse } from '../types/post'
 
 export function getUser(id: number): Promise<UserResponse> {
   return client.get(`/users/${id}`).then((r) => r.data)
@@ -15,6 +16,14 @@ export function updateUser(
 
 export function getUserPosts(id: number): Promise<PostResponse[]> {
   return client.get(`/users/${id}/posts`).then((r) => r.data)
+}
+
+export function getUserLikedPosts(id: number): Promise<PostResponse[]> {
+  return client.get(`/users/${id}/liked-posts`).then((r) => r.data)
+}
+
+export function getUserComments(id: number): Promise<CommentResponse[]> {
+  return client.get(`/users/${id}/comments`).then((r) => r.data)
 }
 
 export function followUser(id: number): Promise<void> {

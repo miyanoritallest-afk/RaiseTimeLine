@@ -1,8 +1,10 @@
 package com.raisetimeline.backend.controller;
 
 import com.raisetimeline.backend.dto.request.UpdateProfileRequest;
+import com.raisetimeline.backend.dto.response.CommentResponse;
 import com.raisetimeline.backend.dto.response.PostResponse;
 import com.raisetimeline.backend.dto.response.UserResponse;
+import com.raisetimeline.backend.service.CommentService;
 import com.raisetimeline.backend.service.PostService;
 import com.raisetimeline.backend.service.UserService;
 import jakarta.validation.Valid;
@@ -20,6 +22,7 @@ public class UserController {
 
     private final UserService userService;
     private final PostService postService;
+    private final CommentService commentService;
 
     @GetMapping
     public List<UserResponse> searchUsers(@RequestParam String q,
@@ -37,6 +40,18 @@ public class UserController {
     public List<PostResponse> getUserPosts(@PathVariable Long id,
                                            @AuthenticationPrincipal UserDetails userDetails) {
         return postService.getPostsByUser(id, Long.parseLong(userDetails.getUsername()));
+    }
+
+    @GetMapping("/{id}/liked-posts")
+    public List<PostResponse> getLikedPosts(@PathVariable Long id,
+                                            @AuthenticationPrincipal UserDetails userDetails) {
+        return postService.getLikedPostsByUser(id, Long.parseLong(userDetails.getUsername()));
+    }
+
+    @GetMapping("/{id}/comments")
+    public List<CommentResponse> getUserComments(@PathVariable Long id,
+                                                 @AuthenticationPrincipal UserDetails userDetails) {
+        return commentService.getCommentsByUser(id);
     }
 
     @PatchMapping("/{id}")
