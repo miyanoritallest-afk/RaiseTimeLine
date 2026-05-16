@@ -4,6 +4,7 @@ import com.raisetimeline.backend.dto.response.LikeResponse;
 import com.raisetimeline.backend.entity.Like;
 import com.raisetimeline.backend.entity.Post;
 import com.raisetimeline.backend.entity.User;
+import com.raisetimeline.backend.exception.ResourceNotFoundException;
 import com.raisetimeline.backend.repository.LikeRepository;
 import com.raisetimeline.backend.repository.PostRepository;
 import com.raisetimeline.backend.repository.UserRepository;
@@ -79,5 +80,23 @@ class LikeServiceTest {
 
         assertThat(res.likedByMe()).isFalse();
         verify(likeRepository, never()).delete(any());
+    }
+
+    // WB分岐: 投稿未発見 → ResourceNotFoundException（likePost）
+    @Test
+    void likePost_postNotFound_throwsResourceNotFound() {
+        given(postRepository.existsById(999L)).willReturn(false);
+
+        assertThatThrownBy(() -> likeService.likePost(999L, 1L))
+            .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    // WB分岐: 投稿未発見 → ResourceNotFoundException（unlikePost）
+    @Test
+    void unlikePost_postNotFound_throwsResourceNotFound() {
+        given(postRepository.existsById(999L)).willReturn(false);
+
+        assertThatThrownBy(() -> likeService.unlikePost(999L, 1L))
+            .isInstanceOf(ResourceNotFoundException.class);
     }
 }
