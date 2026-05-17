@@ -39,6 +39,8 @@ dependencies {
     implementation(platform("software.amazon.awssdk:bom:2.25.60"))
     implementation("software.amazon.awssdk:s3")
 
+    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
