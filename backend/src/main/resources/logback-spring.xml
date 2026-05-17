@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <!-- 開発環境（prod以外）: 人間が読みやすいテキスト形式 -->
+  <springProfile name="!prod">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+        <pattern>%d{HH:mm:ss.SSS} %-5level [%X{requestId:-no-req}] [userId:%X{userId:-anon}] %logger{36} - %msg%n</pattern>
+      </encoder>
+    </appender>
+
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+    <logger name="com.raisetimeline" level="DEBUG"/>
+    <logger name="org.springframework.security" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
+  </springProfile>
+
+  <!-- 本番環境（prod）: JSON構造化ログ -->
+  <springProfile name="prod">
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        <customFields>{"service":"raise-timeline","env":"prod"}</customFields>
+        <includeMdcKeyName>requestId</includeMdcKeyName>
+        <includeMdcKeyName>userId</includeMdcKeyName>
+        <includeMdcKeyName>httpMethod</includeMdcKeyName>
+        <includeMdcKeyName>httpPath</includeMdcKeyName>
+        <includeMdcKeyName>durationMs</includeMdcKeyName>
+        <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSS'Z'</timestampPattern>
+        <timeZone>UTC</timeZone>
+        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+          <maxDepthPerCause>30</maxDepthPerCause>
+          <rootCauseFirst>true</rootCauseFirst>
+        </throwableConverter>
+      </encoder>
+    </appender>
+
+    <root level="INFO">
+      <appender-ref ref="JSON_CONSOLE"/>
+    </root>
+    <logger name="com.raisetimeline" level="INFO"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
+  </springProfile>
+
+</configuration>

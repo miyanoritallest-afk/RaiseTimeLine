@@ -17,6 +17,7 @@ import com.raisetimeline.backend.repository.LikeRepository;
 import com.raisetimeline.backend.repository.PostRepository;
 import com.raisetimeline.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -109,6 +111,7 @@ public class PostService {
             post.setImages(images);
         }
         post = postRepository.save(post);
+        log.info("Post created: postId={}, userId={}", post.getId(), userId);
         User savedUser = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("ユーザーが見つかりません"));
         return toPostResponseSingle(post, false, userId, savedUser);
@@ -145,6 +148,7 @@ public class PostService {
             throw new ForbiddenException("他のユーザーの投稿は削除できません");
         }
         postRepository.delete(post);
+        log.info("Post deleted: postId={}, userId={}", postId, currentUserId);
     }
 
     @Transactional(readOnly = true)

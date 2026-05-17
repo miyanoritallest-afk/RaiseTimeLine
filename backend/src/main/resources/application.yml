@@ -42,6 +42,13 @@ aws:
   secret-access-key: ${AWS_SECRET_ACCESS_KEY:test}
 
 logging:
-  level:
-    com.raisetimeline: DEBUG
-    org.springframework.security: INFO
+  config: classpath:logback-spring.xml
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: alpha
+    tagsSorter: alpha
+    tryItOutEnabled: true

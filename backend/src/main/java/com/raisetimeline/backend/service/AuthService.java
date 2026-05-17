@@ -10,6 +10,7 @@ import com.raisetimeline.backend.exception.InvalidTokenException;
 import com.raisetimeline.backend.repository.UserRepository;
 import com.raisetimeline.backend.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -44,6 +46,7 @@ public class AuthService {
             .refreshTokenExpiresAt(expiresAt())
             .build();
         user = userRepository.save(user);
+        log.info("User registered: userId={}", user.getId());
         return toAuthResponse(user, rawRefreshToken);
     }
 
@@ -54,7 +57,9 @@ public class AuthService {
         if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {
             throw new BadCredentialsException("メールアドレスまたはパスワードが正しくありません");
         }
-        return issueTokens(user);
+        AuthResponse response = issueTokens(user);
+        log.info("User logged in: userId={}", user.getId());
+        return response;
     }
 
     @Transactional
@@ -79,6 +84,7 @@ public class AuthService {
                 u.setRefreshTokenHash(null);
                 u.setRefreshTokenExpiresAt(null);
                 userRepository.save(u);
+                log.info("User logged out: userId={}", u.getId());
             });
     }
 

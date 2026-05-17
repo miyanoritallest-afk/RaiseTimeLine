@@ -1,6 +1,7 @@
 package com.raisetimeline.backend.exception;
 
 import com.raisetimeline.backend.dto.response.ErrorResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -25,6 +27,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ForbiddenException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleForbidden(ForbiddenException ex) {
+        log.warn("Forbidden access: {}", ex.getMessage());
         return new ErrorResponse(403, "Forbidden", ex.getMessage(), LocalDateTime.now());
     }
 
@@ -46,6 +49,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleBadCredentials(BadCredentialsException ex) {
+        log.warn("Authentication failed: bad credentials");
         return new ErrorResponse(401, "Unauthorized", ex.getMessage(), LocalDateTime.now());
     }
 
@@ -58,12 +62,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTokenException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleInvalidToken(InvalidTokenException ex) {
+        log.warn("Invalid token: {}", ex.getMessage());
         return new ErrorResponse(401, "Unauthorized", ex.getMessage(), LocalDateTime.now());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDataIntegrity(DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation: {}", ex.getMessage());
         return new ErrorResponse(409, "Conflict", "リソースが既に存在します", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleUnexpected(Exception ex) {
+        log.error("Unexpected error occurred", ex);
+        return new ErrorResponse(500, "Internal Server Error", "予期しないエラーが発生しました", LocalDateTime.now());
     }
 }
