@@ -1,20 +1,4 @@
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "PROJ=\"c:/宮本憲秀/CursorProjects/RaiseTimeLine\"; TARGET=$(node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const o=JSON.parse(d);const f=(o.tool_input&&(o.tool_input.file_path||o.tool_input.filePath))||(o.tool_response&&o.tool_response.filePath)||'';const isTest=/\\\\.test\\\\.(ts|tsx)$/.test(f)||/Test\\\\.java$/.test(f);const isFE=/\\/frontend\\//.test(f)&&/\\\\.(ts|tsx)$/.test(f);const isBE=/\\/backend\\/src\\/main\\//.test(f)&&/\\\\.(java|kt|kts)$/.test(f);if(isTest){process.exit(0);}if(isFE){console.log('frontend');}else if(isBE){console.log('backend');}else{process.exit(0);}});\"); if [ \"$TARGET\" = \"frontend\" ]; then cd \"$PROJ/frontend\" && npm test; elif [ \"$TARGET\" = \"backend\" ]; then cd \"$PROJ/backend\" && ./gradlew test --info 2>&1 | tail -20; fi",
-            "timeout": 300,
-            "statusMessage": "テストを実行中...",
-            "async": true
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Bash(ssh *)",
