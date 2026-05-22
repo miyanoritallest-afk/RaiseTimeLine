@@ -1,2 +1,6 @@
 # Screenshots (動作確認用、リポジトリには含めない)
 screenshots/
+
+# パフォーマンステストレポート（HTML ダッシュボード出力）
+performance/reports/*.html
+performance/reports/*.json
