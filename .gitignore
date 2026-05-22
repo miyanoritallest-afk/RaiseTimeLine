@@ -1,6 +1,9 @@
 # Screenshots (動作確認用、リポジトリには含めない)
 screenshots/
 
+# ローカル開発でアップロードされた画像ファイル
+backend/uploads/
+
 # パフォーマンステストレポート（HTML ダッシュボード出力）
 performance/reports/*.html
 performance/reports/*.json
